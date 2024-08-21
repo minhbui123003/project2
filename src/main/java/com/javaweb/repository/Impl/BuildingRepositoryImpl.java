@@ -60,11 +60,12 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 					{
 						where.append(" AND b."+it.getKey()+ " = "+ value );
 					}
+					else
+					{
+						where.append(" AND b."+it.getKey()+ " like '%"  +value+  "%'   " );
+					}
 				}
-				else
-				{
-					where.append(" AND b."+it.getKey()+ " like '%"  +value+  "%'   " );
-				}
+				
 			}
 		}
 	}
