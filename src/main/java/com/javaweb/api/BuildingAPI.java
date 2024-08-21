@@ -3,6 +3,7 @@ package com.javaweb.api;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,12 +24,11 @@ public class BuildingAPI {
 	private BuildingService buildingService;
 	
 	@GetMapping(value="/api/building")
-	public List<BuildingDTO>  getBuilding(@RequestParam(name = "name", required = false) String name,
-										  @RequestParam(name = "districtId", required = false) Long district,
+	public List<BuildingDTO>  getBuilding(@RequestParam Map<String,Object> params,
 										  @RequestParam(name = "typeCode", required = false) List<String> typeCode
 			)
 	{
-		List<BuildingDTO> kq = buildingService.findAll(name,district); 
+		List<BuildingDTO> kq = buildingService.findAll(params,typeCode); 
 		return kq;
 
 	}
