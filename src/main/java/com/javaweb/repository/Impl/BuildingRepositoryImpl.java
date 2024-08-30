@@ -1,5 +1,6 @@
 package com.javaweb.repository.Impl;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,8 +14,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.javaweb.builder.BuildingSearchBuilder;
 import com.javaweb.repository.BuildingRepository;
 import com.javaweb.repository.entity.BuildingEntity;
+import com.javaweb.utils.NumberDifferent0;
 import com.javaweb.utils.NumberUtil;
 import com.javaweb.utils.StringUtil;
 
@@ -26,15 +29,16 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 	static final String PASS = "";
 	
 //	hàm xu ly join các bảng
-	public static void joinTable(Map<String,Object> params,List<String> typeCode, StringBuilder join)
+	public static void joinTable(BuildingSearchBuilder buildingSearchBuilder, StringBuilder join)
 	{
-		String staffId = (String)params.get("staffId");
-		if( StringUtil.checkString(staffId) )
+		Long staffId = buildingSearchBuilder.getStaffId();
+		if( NumberDifferent0.checkNumberKhac0(staffId) )
 		{
 			join.append(" inner join assignmentbuilding on assignmentbuilding.buildingid = b.id   ");
 		}
 		
 //		join bảng renttype
+		List<String> typeCode = buildingSearchBuilder.getTypeCode();
 		if(typeCode!=null && typeCode.size()!=0)
 		{
 			join.append(" inner join buildingrenttype on buildingrenttype.buildingid = b.id   ");
@@ -51,55 +55,86 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 	}
 	
 //	xử lý câu lệnh query nomal ( không phức tạp)
-	public static void queryNomal(Map<String,Object> params, StringBuilder where)
+	public static void queryNomal(BuildingSearchBuilder buildingSearchBuilder, StringBuilder where)
 	{
-		for (Map.Entry<String, Object> item : params.entrySet()) 
-		{
-			if( !item.getKey().equals("staffId") && !item.getKey().equals("typeCode") 
-					&& !item.getKey().startsWith("area") && !item.getKey().startsWith("rentPrice") )
-			{
-				String value = item.getValue().toString();
-				
-				if( StringUtil.checkString(value))
+//		for (Map.Entry<String, Object> item : params.entrySet()) 
+//		{
+//			if( !item.getKey().equals("staffId") && !item.getKey().equals("typeCode") 
+//					&& !item.getKey().startsWith("area") && !item.getKey().startsWith("rentPrice") )
+//			{
+//				String value = item.getValue().toString();
+//				
+//				if( StringUtil.checkString(value))
+//				{
+//					if(NumberUtil.isNumber(value) )
+//					{
+//						where.append(" and  b."+item.getKey()+" = "+ item.getValue() +"  ");
+//					}
+//					else
+//					{
+//						where.append(" and  b."+item.getKey()+" like '%"+ item.getValue() +"%'  ");
+//
+//					}
+//				}
+//				
+//			}
+//		}
+		
+		try {
+			Field[] fields= BuildingSearchBuilder.class.getDeclaredFields();
+			for(Field item : fields) {
+				item.setAccessible(true);
+				String fieldName = item.getName();
+				if(!fieldName.equals("staffId") && !fieldName.equals("typeCode") 
+					&& !fieldName.startsWith("area") &&!fieldName.equals("rentPrice"))
 				{
-					if(NumberUtil.isNumber(value) )
-					{
-						where.append(" and  b."+item.getKey()+" = "+ item.getValue() +"  ");
-					}
-					else
-					{
-						where.append(" and  b."+item.getKey()+" like '%"+ item.getValue() +"%'  ");
-
-					}
+					Object value = item.get(buildingSearchBuilder);
+					if( value!=null)
+						{
+							if(item.getType().getName().equals("java.lang.Long")||item.getType().getName().equals("java.lang.Integer")
+									||item.getType().getName().equals("java.lang.Float") )
+							{
+								
+								where.append(" and  b."+fieldName+" = "+ value +"  ");
+							}
+							else if(item.getType().getName().equals("java.lang.String"))
+							{
+								where.append(" and  b."+fieldName+" like '%"+ value +"%'  ");
+		
+							}
+						}
 				}
-				
 			}
 		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 //	xử lý câu lệnh query special ( không phức tạp)
-	public static void querySpecial(Map<String,Object> params,List<String> typeCode,StringBuilder where)
+	public static void querySpecial(BuildingSearchBuilder buildingSearchBuilder,StringBuilder where)
 	{
 
 //		xử lý câu lệnh lấy dữ liệu từ 
 		
-		String staffId = (String)params.get("staffId");
-		if(StringUtil.checkString(staffId))
+		Long staffId = buildingSearchBuilder.getStaffId();
+		if( NumberDifferent0.checkNumberKhac0(staffId) )
 		{
 			where.append(" and assignmentbuilding.staffid =  "+staffId +" ");
 		}
 		
 		
 //		xử lý dữ liệu   area  từ rentarea
-		String rentAreaTo = (String)params.get("areaTo");
-		String rentAreaFrom = (String)params.get("areaFrom");
-		if(   StringUtil.checkString(rentAreaFrom )  || StringUtil.checkString(rentAreaTo)  )
+		Long rentAreaTo = buildingSearchBuilder.getAreaTo();
+		Long rentAreaFrom = buildingSearchBuilder.getAreaFrom();
+		if(   NumberDifferent0.checkNumberKhac0(rentAreaFrom)  || NumberDifferent0.checkNumberKhac0(rentAreaTo)   )
 		{
 			where.append(" and exists (select * from rentarea r where b.id = r.buildingid    ");
-			if(StringUtil.checkString(rentAreaFrom))
+			if(NumberDifferent0.checkNumberKhac0(rentAreaFrom))
 			{
 				where.append(" and r.value >= "+rentAreaFrom + " ");
 			}
-			if(StringUtil.checkString(rentAreaTo))
+			if( NumberDifferent0.checkNumberKhac0(rentAreaTo) )
 			{
 				where.append(" and r.value <= "+rentAreaTo + " ");
 			}
@@ -108,15 +143,15 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 		}
 		
 //		xử lý dữ liệu   từ rentprice
-		String rentPriceFrom = (String)params.get("rentPriceFrom");
-		String rentPriceTo = (String)params.get("rentPriceTo");
-		if(   StringUtil.checkString(rentPriceTo )  ||StringUtil.checkString(rentPriceFrom)  )
+		Long rentPriceFrom = buildingSearchBuilder.getRentPriceFrom();
+		Long rentPriceTo = buildingSearchBuilder.getRentPriceTo();
+		if(   NumberDifferent0.checkNumberKhac0(rentPriceTo )  ||NumberDifferent0.checkNumberKhac0(rentPriceFrom)  )
 		{
-			if(StringUtil.checkString(rentAreaFrom))
+			if(NumberDifferent0.checkNumberKhac0(rentAreaFrom))
 			{
 				where.append(" and b.rentprice >= "+rentPriceFrom + " ");
 			}
-			if(StringUtil.checkString(rentPriceTo))
+			if(NumberDifferent0.checkNumberKhac0(rentPriceTo))
 			{
 				where.append(" and b.rentprice <= "+rentPriceTo + " ");
 			}
@@ -140,6 +175,7 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 //		
 		
 //		java8
+		List<String> typeCode = buildingSearchBuilder.getTypeCode();
 		if(typeCode!=null && typeCode.size()!=0 ) {
 			where.append(" and  (");
 			String sql1 =  typeCode.stream().map(it-> "renttype.code like '%"+it+"%' ").collect(Collectors.joining(" or "));
@@ -150,7 +186,7 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 	}
 	
 	@Override
-	public List<BuildingEntity> findAll(Map<String,Object> params,List<String> typeCode) {
+	public List<BuildingEntity> findAll(BuildingSearchBuilder buildingSearchBuilder) {
 		System.out.println("connecting with database");
 		
 		StringBuilder sql = new StringBuilder("select b.id , b.name , b.ward, b.street,b.numberofbasement,"
@@ -158,11 +194,11 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 				+ " b.brokeragefee, b.floorarea "
 				+ " from building b ");
 		
-		joinTable(params, typeCode, sql);
+		joinTable(buildingSearchBuilder, sql);
 		
 		StringBuilder where = new StringBuilder(" Where 1=1   ");
-		queryNomal(params, where);
-		querySpecial(params, typeCode, where);
+		queryNomal(buildingSearchBuilder, where);
+		querySpecial(buildingSearchBuilder, where);
 		where.append(" group by b.id ");
 		sql.append(where);
 		
