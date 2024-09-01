@@ -86,7 +86,7 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 				item.setAccessible(true);
 				String fieldName = item.getName();
 				if(!fieldName.equals("staffId") && !fieldName.equals("typeCode") 
-					&& !fieldName.startsWith("area") &&!fieldName.equals("rentPrice"))
+					&& !fieldName.startsWith("area") &&!fieldName.startsWith("rentPrice"))
 				{
 					Object value = item.get(buildingSearchBuilder);
 					if( value!=null)
@@ -147,7 +147,7 @@ public class BuildingRepositoryImpl implements BuildingRepository{
 		Long rentPriceTo = buildingSearchBuilder.getRentPriceTo();
 		if(   NumberDifferent0.checkNumberKhac0(rentPriceTo )  ||NumberDifferent0.checkNumberKhac0(rentPriceFrom)  )
 		{
-			if(NumberDifferent0.checkNumberKhac0(rentAreaFrom))
+			if(NumberDifferent0.checkNumberKhac0(rentPriceFrom))
 			{
 				where.append(" and b.rentprice >= "+rentPriceFrom + " ");
 			}
