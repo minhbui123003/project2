@@ -8,25 +8,30 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Repository;
 
 import com.javaweb.builder.BuildingSearchBuilder;
 import com.javaweb.repository.BuildingRepository;
 import com.javaweb.repository.entity.BuildingEntity;
 import com.javaweb.utils.NumberDifferent0;
-import com.javaweb.utils.NumberUtil;
-import com.javaweb.utils.StringUtil;
 
 
 @Repository
+@PropertySource("classpath:application.properties")
 public class BuildingRepositoryImpl implements BuildingRepository{
-	static final String BD_URL = "jdbc:mysql://localhost:3306/estatebasic";
-	static final String USER = "root";
-	static final String PASS = "";
+
+
+	@Value("${spring.datasource.url}")
+	private  String BD_URL;
+	@Value("${spring.datasource.username}")
+	private  String USER;
+	@Value("${spring.datasource.password}")
+	private String  PASS ;
+	
 	
 //	hàm xu ly join các bảng
 	public static void joinTable(BuildingSearchBuilder buildingSearchBuilder, StringBuilder join)

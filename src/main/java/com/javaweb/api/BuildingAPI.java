@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,10 +20,15 @@ import com.javaweb.service.BuildingService;
 import customexception.FieldRequiredException;
 
 @RestController
+@PropertySource("classpath:application.properties")
 public class BuildingAPI {
 	
 	@Autowired
 	private BuildingService buildingService;
+	
+	@Value("${minh.bui}")
+	private String data;
+	
 	
 	@GetMapping(value="/api/building")
 	public List<BuildingDTO>  getBuilding(@RequestParam Map<String,Object> params,
@@ -34,20 +41,18 @@ public class BuildingAPI {
 	}
 	
 
-	public void valiDate(BuildingDTO buildingDTO) 
-	{
-		if(buildingDTO.getName()==null || buildingDTO.getName().equals("") || buildingDTO.getNumberOfbasement()==null )
-		{
-			throw new FieldRequiredException("name or numberOfBasement is null");
-		}
-	}
+//	public void valiDate(BuildingDTO buildingDTO) 
+//	{
+//		if(buildingDTO.getName()==null || buildingDTO.getName().equals("") || buildingDTO.getNumberOfbasement()==null )
+//		{
+//			throw new FieldRequiredException("name or numberOfBasement is null");
+//		}
+//	}
+//	
 	
-	
-	@DeleteMapping(value="/api/building/{id}/{name}")
-	public void delete(@PathVariable Integer id, 
-						@PathVariable String name,
-						@RequestParam (value = "ward", required = false) String ward)
+	@DeleteMapping(value="/api/building/{id}")
+	public void delete(@PathVariable Integer id)
 	{
-		System.out.println("đã xóa tòa "+ name + " nhà có : "+id+" xong ở : "+ward);
+		System.out.println(data);
 	}
 }
