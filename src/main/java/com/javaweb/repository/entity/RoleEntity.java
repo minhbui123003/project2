@@ -9,6 +9,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -27,17 +28,22 @@ public class RoleEntity {
 	private String code;
 	
 
-	@OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-	private List<UserRoleEntity> userRoleEntities = new ArrayList<UserRoleEntity>();
+//	thủ công
+//	@OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+//	private List<UserRoleEntity> userRoleEntities = new ArrayList<UserRoleEntity>();
+//	công nghệ
+	
+	@ManyToMany(mappedBy = "listRoleEntities",fetch = FetchType.LAZY)
+	private List<UserEntity> listUserEntities = new ArrayList<UserEntity>();
 	
 	
 
-	public List<UserRoleEntity> getUserRoleEntities() {
-		return userRoleEntities;
+	public List<UserEntity> getListUserEntities() {
+		return listUserEntities;
 	}
 
-	public void setUserRoleEntities(List<UserRoleEntity> userRoleEntities) {
-		this.userRoleEntities = userRoleEntities;
+	public void setListUserEntities(List<UserEntity> listUserEntities) {
+		this.listUserEntities = listUserEntities;
 	}
 
 	public Long getId() {
