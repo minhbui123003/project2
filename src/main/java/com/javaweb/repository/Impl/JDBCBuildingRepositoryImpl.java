@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Repository;
 
@@ -21,9 +26,12 @@ import com.javaweb.utils.NumberDifferent0;
 
 
 @Repository
-@PropertySource("classpath:application.properties")
+//@PropertySource("classpath:application.properties")
+@Primary
 public class JDBCBuildingRepositoryImpl implements BuildingRepository{
 
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Value("${spring.datasource.url}")
 	private  String BD_URL;
@@ -208,42 +216,44 @@ public class JDBCBuildingRepositoryImpl implements BuildingRepository{
 		sql.append(where);
 		
 		System.out.println(sql);
-		List<BuildingEntity> kq = new ArrayList<BuildingEntity>();
-		
-		try(Connection conn = DriverManager.getConnection(BD_URL, USER, PASS); 
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql.toString());
-		    )
-		{
-			while(rs.next())
-			{
-				BuildingEntity building = new BuildingEntity();
-				
-
-				building.setName(rs.getString("b.name"));
-				building.setNumberOfbasement(rs.getInt("b.numberofbasement"));
-				building.setStreet(rs.getString("b.street"));
-				building.setWard(rs.getString("b.ward"));
-				building.setId(rs.getLong("b.id"));
-//				building.setDistrictId(rs.getLong("b.districtid"));
-				building.setManagerName(rs.getString("b.managername"));
-				building.setManagerPhoneNumber( rs.getString("b.managerphonenumber"));
-				building.setFloorArea(rs.getLong("b.floorarea") );
-				building.setRentPrice(rs.getLong("b.rentprice"));
-				building.setServiceFee(rs.getString("b.servicefee"));
-				building.setBrokerageFee(rs.getLong("b.brokeragefee"));			
-				
-				kq.add(building);
-				
-			}
-			
-			System.out.println("Connected is successfully");
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("The connect is faild");
-		}
-		return kq;
+//		List<BuildingEntity> kq = new ArrayList<BuildingEntity>();
+//		
+//		try(Connection conn = DriverManager.getConnection(BD_URL, USER, PASS); 
+//			Statement stmt = conn.createStatement();
+//			ResultSet rs = stmt.executeQuery(sql.toString());
+//		    )
+//		{
+//			while(rs.next())
+//			{
+//				BuildingEntity building = new BuildingEntity();
+//				
+//
+//				building.setName(rs.getString("b.name"));
+//				building.setNumberOfbasement(rs.getInt("b.numberofbasement"));
+//				building.setStreet(rs.getString("b.street"));
+//				building.setWard(rs.getString("b.ward"));
+//				building.setId(rs.getLong("b.id"));
+////				building.setDistrictId(rs.getLong("b.districtid"));
+//				building.setManagerName(rs.getString("b.managername"));
+//				building.setManagerPhoneNumber( rs.getString("b.managerphonenumber"));
+//				building.setFloorArea(rs.getLong("b.floorarea") );
+//				building.setRentPrice(rs.getLong("b.rentprice"));
+//				building.setServiceFee(rs.getString("b.servicefee"));
+//				building.setBrokerageFee(rs.getLong("b.brokeragefee"));			
+//				
+//				kq.add(building);
+//				
+//			}
+//			
+//			System.out.println("Connected is successfully");
+//		}
+//		catch (SQLException e) {
+//			e.printStackTrace();
+//			System.out.println("The connect is faild");
+//		}
+//		return kq;
+		Query query = entityManager.createNativeQuery(sql.toString(), BuildingEntity.class);
+		return query.getResultList();
 	}
 
 }
