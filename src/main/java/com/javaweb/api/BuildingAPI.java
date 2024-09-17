@@ -23,18 +23,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.javaweb.Model.BuildingDTO;
 import com.javaweb.Model.BuildingResquestDTO;
+import com.javaweb.repository.BuildingRepository;
 import com.javaweb.repository.entity.BuildingEntity;
 import com.javaweb.repository.entity.DistrictEntity;
 import com.javaweb.service.BuildingService;
 
 import customexception.FieldRequiredException;
-
+@Transactional
 @RestController
 @PropertySource("classpath:application.properties")
 public class BuildingAPI {
 	
 	@Autowired
 	private BuildingService buildingService;
+	
+	@Autowired
+	private BuildingRepository buildingRepository;
 	
 	@Value("${minh.bui}")
 	private String data;
@@ -51,19 +55,26 @@ public class BuildingAPI {
 	}
 	
 
-//	public void valiDate(BuildingDTO buildingDTO) 
-//	{
-//		if(buildingDTO.getName()==null || buildingDTO.getName().equals("") || buildingDTO.getNumberOfbasement()==null )
-//		{
-//			throw new FieldRequiredException("name or numberOfBasement is null");
-//		}
-//	}
-//	
+	
 	@PersistenceContext
 	private EntityManager entityManager;
-	@Transactional
+
 	
-	@PostMapping(value="/api/building")
+	@GetMapping(value="/api/building/{managerName}/{name}")
+	public List<BuildingDTO>  getBuildingByName(@PathVariable String managerName,
+												@PathVariable String name	)
+	{
+		BuildingDTO kq  = new BuildingDTO();
+		
+		List<BuildingEntity> buildingEntities = buildingRepository.findByManagerNameContainingAndNameContaining(managerName, name);
+		
+		return null;
+
+	}
+	
+	
+//	sửa thành thêm có sử dụng save của data-jpa
+	@PostMapping(value="/api/building/")
 	public void createBuilding(@RequestBody BuildingResquestDTO buildingResquestDTO)
 	{
 		BuildingEntity buildingEntity = new BuildingEntity();
@@ -75,16 +86,18 @@ public class BuildingAPI {
 		districtEntity.setId(buildingResquestDTO.getDistrictId());
 		
 		buildingEntity.setDistrict(districtEntity);
-		entityManager.persist(buildingEntity);
+//		entityManager.persist(buildingEntity);
+		buildingRepository.save(buildingEntity);
 		System.out.println("thêm xong");
 	}
 	
-	@Transactional
-	@PutMapping(value="/api/building")
+
+//	sửa thành cập nhật sử dụng datta -jpa
+	@PutMapping(value="/api/building/")
 	public void updateBuilding(@RequestBody BuildingResquestDTO buildingResquestDTO)
 	{
-		BuildingEntity buildingEntity = new BuildingEntity();
-		buildingEntity.setId(1L);
+		BuildingEntity buildingEntity = buildingRepository.findById(buildingResquestDTO.getId()).get();
+//		buildingEntity.setId(1L);
 		buildingEntity.setName(buildingResquestDTO.getName());
 		buildingEntity.setStreet(buildingResquestDTO.getStreet());
 		buildingEntity.setWard(buildingResquestDTO.getWard());
@@ -93,15 +106,18 @@ public class BuildingAPI {
 		districtEntity.setId(buildingResquestDTO.getDistrictId());
 		
 		buildingEntity.setDistrict(districtEntity);
-		entityManager.merge(buildingEntity);
+//		entityManager.merge(buildingEntity);
+		buildingRepository.save(buildingEntity);
 		System.out.println("sửa  xong");
 	}
 	
-	@DeleteMapping(value="/api/building/{id}")
-	public void delete(@PathVariable Long id)
+
+	
+//	xóa 1 list
+	@DeleteMapping(value="/api/building/{ids}")
+	public void deleteList(@PathVariable Long[] ids)
 	{
-		BuildingEntity buildingEntity = entityManager.find(BuildingEntity.class, id);
-		entityManager.remove(buildingEntity);
+		buildingRepository.deleteByIdIn(ids);
 		System.out.println("xóa xong");
 	}
 }
